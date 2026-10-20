@@ -2,7 +2,22 @@
 
 An Arduino Mega/Wokwi project exploring joystick control of a simulated drilling arm, vibration-triggered interlocks, and an LED-matrix hazard display. Originally developed as the **Thalassic Excavator** embedded-systems exercise.
 
-**Repository status: documentation and submitted evidence.** The available material contains three reports, circuit images and links to recorded simulations. The original Arduino sketch and editable Wokwi project have not yet been located. This repository is not currently a self-contained buildable or runnable project, and no firmware has been recreated from screenshots.
+**[Open and run in Wokwi](https://wokwi.com/projects/465840256063564801)**
+
+The original Level 2 sketch, editable circuit and library list are included. On 20 October 2026, the online simulation started and its OLED displayed **1. Control Drill**. This was a startup check; the motion, feedback and hazard-display scenarios still need individual testing. See [verification notes](docs/verification.md).
+
+## Source files and running the project
+
+| File | Purpose |
+| --- | --- |
+| `sketch.ino` | Original Level 2 Arduino firmware |
+| `diagram.json` | Editable Wokwi circuit using an Arduino Mega |
+| `libraries.txt` | Wokwi library dependencies |
+| `wokwi-project.txt` | Original export's project link |
+
+These four files are preserved byte-for-byte from the supplied Wokwi project's export. Earlier firmware versions are represented by their reports; separate Level 0 and Level 1 sketches have not been recovered.
+
+To run the simulation, open the Wokwi link and press Start. Check the OLED menu, then exercise the joystick, select/back buttons and sensor inputs. The sketch uses Adafruit GFX Library, Adafruit SSD1306 and Servo, plus the Arduino core's Wire and SPI libraries. For a local Arduino IDE build, place `sketch.ino` inside a folder named `sketch`, install the listed libraries and select Arduino Mega 2560. A local build has not been verified.
 
 ## Documented development stages
 
@@ -24,7 +39,18 @@ The reports describe the implementation approach and debugging history. Their re
 - RGB LED and buzzer for status/interlock feedback.
 - MAX7219-style 8×8 LED-matrix module in the mapping stage.
 
-The stage diagrams are historical Wokwi snapshots. Firmware is needed to establish the exact pin assignments, timing assumptions and active component configuration.
+The stage diagrams are historical Wokwi snapshots. The recovered Level 2 firmware defines these pins:
+
+| Function | Arduino Mega pins |
+| --- | --- |
+| Joystick vertical / horizontal | A15 / A14 |
+| Select / back | 2 / 3 |
+| Stepper direction / step | 11 / 12 |
+| Servo | 13 |
+| RGB red / green / blue | 4 / 5 / 6 |
+| Buzzer | 22 |
+| Matrix data / chip select / clock | 8 / 9 / 10 |
+| OLED / MPU6050 | I2C, addresses `0x3C` / `0x68` |
 
 ## Circuit diagrams
 
@@ -46,13 +72,23 @@ The stage diagrams are historical Wokwi snapshots. Firmware is needed to establi
 - [Stage 1 recording](https://drive.google.com/file/d/1VMMDrOzgt0JvMdCT57NRFqtiZ7Od7ujr/view) — `Level_1.mkv`, approximately 29.8 MB.
 - [Stage 2 recording](https://drive.google.com/file/d/1LcFLCSrh0hfGbNf_W9HodWCG2g3zlqwF/view) — `Level_2.mp4`, approximately 319.9 MB.
 
-These are existing submission recordings, retained on Drive rather than copied into Git history. Drive's existing access settings apply. They have not been independently reviewed frame by frame, and no new simulation run is claimed.
+These are existing submission recordings, retained on Drive rather than copied into Git history. Drive's existing access settings apply. They have not been independently reviewed frame by frame; the new startup check is documented separately.
 
 ## Development notes
 
 The mapping-stage report records several iterations of drill animation: removing trailing pixels, avoiding blocking delays, constraining matrix addressing and simplifying the animation logic. It also describes a bounded hazard graph with up to eight display columns.
 
-The vibration calculation is treated here as the exercise's feedback metric. The reports and diagrams alone do not establish calibrated material-hardness measurement or persistent storage across a power cycle.
+The recovered sketch provides Control Drill and View Readings menus, stepper/servo control, RGB/buzzer feedback, a jam flag that gates downward movement, drill animation and hazard arrays capped at 10 entries. The graph displays up to eight entries.
+
+The function named `getjerk()` computes the magnitude of the MPU6050's scaled X/Y gyroscope readings. This is an exercise feedback metric; calibrated physical jerk or material hardness has not been established. Hazard data is held in memory.
+
+## Known limitations in the original sketch
+
+- The code contains a one-second startup delay and a five-second hard-rock warning delay, despite the exercise's nonblocking scheduling requirement.
+- `SendData()` accepts addresses 1–8 only. The MAX7219 configuration writes in `setup()` use addresses 9–15, so those writes are skipped. Matrix behavior needs follow-up testing and correction.
+- The jam flag clears when the feedback metric falls below its threshold; physical retraction is not independently enforced by that flag.
+
+The original firmware is unchanged. Startup verification does not establish correct behavior for every menu, motion, hazard or matrix-display case.
 
 ## Files and provenance
 
@@ -64,6 +100,4 @@ The vibration calculation is treated here as the exercise's feedback metric. The
 
 [Source Drive folder](https://drive.google.com/drive/folders/1tcv4Tossfqg1NjhqLnVZBN4WMbcAC4-o). The available files were collected on 20 October 2026. Original reports and images are unchanged; their repository copies were checked with SHA-256 hashes, and the Word document archives passed integrity checks.
 
-## Restoring a runnable project
-
-The next required source material is the original Wokwi project URL/export or Arduino sketch, together with its circuit definition and library dependencies. Once located, it can be added alongside these reports, with each firmware version matched to its stage. Build and simulation checks should follow that recovery rather than reconstructing an unverified implementation from screenshots.
+The Level 2 source was recovered from the [user-supplied Wokwi project](https://wokwi.com/projects/465840256063564801) on 20 October 2026. Its export passed ZIP integrity checks, all four copied source files matched their exported SHA-256 hashes, and the circuit JSON parsed successfully with 14 parts and 54 connections. See [verification notes and startup evidence](docs/verification.md).
